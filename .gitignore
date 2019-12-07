@@ -1,0 +1,16 @@
+/Makefile
+/Makefile.old
+/META.yml
+/META.json
+/MYMETA.yml
+/MYMETA.json
+/blib/
+/build/
+/inc/
+/pm_to_blib
+/MANIFEST
+/MANIFEST.bak
+/MANIFEST.SKIP
+*.bs
+*.o
+*.c
