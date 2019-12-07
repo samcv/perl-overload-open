@@ -4,6 +4,12 @@ use warnings;
 use feature qw/ say /;;
 use Test::More;
 use Carp qw/ confess /;
+use Fcntl;
+use overload::open 'record_opened_file';
+my $test_file = 'filename.txt';
+sub cleanup {
+    unlink $test_file;
+}
 my %opened_files;
 sub record_opened_file {
     my ($filename) = @_;
@@ -13,42 +19,43 @@ sub record_opened_file {
         $opened_files{$filename} = 1;
     }
 }
-use overload::open 'record_opened_file';
-my $fh;
 my $global;
-unlink 'filename.txt';
-my $open_lives = 0;
+unlink $test_file;
+my ($open_lives, $print_lives) = (0, 0);
+my $fh;
 eval {
-	open $fh, '>', "filename.txt" || die $!;
-	$open_lives = 1;
-	1;
+    open $fh, '>', $test_file || die $!;
+    $open_lives = 1;
+    1;
 } or do {
-	die $@;
+    warn $@;
 };
-my $print_lives = 0;
 eval {
-	print $fh "words" || die $!;
-	$print_lives = 1;
-	1;
+    print $fh "words" || die $!;
+    $print_lives = 1;
+    1;
 } or do {
-	confess $@;
+    confess $@;
 };
 is $print_lives, 1, "Print does not die";
 is $open_lives, 1, "open does not die";
-is `cat filename.txt`, 'words', "file has correct content";
-unlink 'filename.txt';
+my $sysopen_fh;
 close $fh;
-sub noop {
-	$global = 99;
-	undef;
-}
-open $fh, '>', 'filename.txt' || die $!;
+sysopen($sysopen_fh, $test_file, O_RDONLY);
+my $a;
+($a = <$sysopen_fh>) // warn $!;
+is $a, 'words', "file has correct content";
+close($sysopen_fh) or die $!;
+%opened_files = ();
+open($fh, '>', $test_file) || die $!;
 ok $opened_files{"filename.txt"}, 'recorded that we opened filename.txt from three argument open';
 is keys %opened_files, 1, "correct number of keys after opened filename.txt twice";
 %opened_files = ();
 close $fh;
+
 open $fh, 'filename2.txt';
 is keys %opened_files, 1, "correct number of keys after opened filename2.txt once";
 ok $opened_files{"filename2.txt"}, "stored filename2.txt from two argument open";
-unlink 'filename.txt';
+
+cleanup();
 done_testing();
