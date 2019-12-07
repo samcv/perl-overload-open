@@ -13,7 +13,16 @@ sub cleanup {
 }
 my %opened_files;
 sub record_opened_file {
-    my ($filename) = @_;
+    my $filename;
+    if (@_ == 3) {
+        $filename = $_[2];
+    }
+    elsif (@_ == 2) {
+        $filename = $_[1];
+    }
+    else {
+        return;
+    }
     if (exists $opened_files{$filename}) {
     }
     else {
