@@ -8,6 +8,7 @@ int is_global() {
 }
 
 OP* (*real_pp_open)(pTHX);
+OP* (*real_pp_sysopen)(pTHX);
 PP(pp_overload_open) {
     dSP; dTARG;
     SV* hook;
@@ -37,6 +38,7 @@ PP(pp_overload_open) {
     if (count) {
         warn("Blah");
     }
+    /* SPAGAIN makes me think of Spaghetti */
     SPAGAIN;
     /* FREETMPS and LEAV *probably* clean up the scope from the call_sv() */
     FREETMPS;
@@ -50,8 +52,26 @@ MODULE = overload::open	PACKAGE = overload::open PREFIX = overload_open_
 PROTOTYPES: ENABLE
 
 void
-_install_open()
+_install_open(what_you_want)
+    char *what_you_want
     CODE:
-        /* Is this a race in threaded perl? */
-        real_pp_open = PL_ppaddr[OP_OPEN];
-        PL_ppaddr[OP_OPEN] = Perl_pp_overload_open;
+        if (strcmp(what_you_want, "OP_OPEN") == 0) {
+            /* Is this a race in threaded perl? */
+            real_pp_open = PL_ppaddr[OP_OPEN];
+            PL_ppaddr[OP_OPEN] = Perl_pp_overload_open;
+        }
+        else if (strcmp(what_you_want, "OP_SYSOPEN") == 0) {
+            if (PL_ppaddr[OP_SYSOPEN] != Perl_pp_overload_open) {
+                real_pp_sysopen = PL_ppaddr[OP_SYSOPEN];
+                PL_ppaddr[OP_SYSOPEN] = Perl_pp_overload_open;
+            }
+            else {
+                /* Would be nice if we could warn here.
+                 * TODO: find out how to warn in XS */ 
+            }
+        }
+        /* Just default to this */
+        else {
+            real_pp_open = PL_ppaddr[OP_OPEN];
+            PL_ppaddr[OP_OPEN] = Perl_pp_overload_open;
+        }

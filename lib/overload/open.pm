@@ -26,7 +26,11 @@ sub _install_open; # Provided by open.xs
 
 our $VERSION = '0.01';
 XSLoader::load( 'overload::open', $VERSION );
-_install_open();
+_install_open("OP_OPEN");
+# Don't call this, it's very broken. The filename
+# gets passed through as the file mode because
+# I don't understand how XS arguments work yet
+#_install_open("OP_SYSOPEN");
 
 q[Open sesame seed.];
 

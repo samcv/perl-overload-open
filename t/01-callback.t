@@ -29,10 +29,13 @@ is $open_lives, 1, "open does not die";
 is `cat filename.txt`, 'words', "file has correct content";
 unlink 'filename.txt';
 close $fh;
+no warnings 'redefine';
 sub noop {
-	$global = 99;
-	undef;
+    use warnings;
+    $global = 99;
+    undef;
 }
+use warnings;
 open $fh, '>', 'filename.txt' || die $!;
 is $global, 99, "sets global variable using overloaded sub";
 unlink 'filename.txt';

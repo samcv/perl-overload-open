@@ -6,7 +6,8 @@ use Test::More;
 use Carp qw/ confess /;
 use Fcntl;
 use overload::open 'record_opened_file';
-my $test_file = 'filename.txt';
+use File::Temp qw/ tempfile /;
+my $test_file = tempfile;
 sub cleanup {
     unlink $test_file;
 }
@@ -41,6 +42,7 @@ is $print_lives, 1, "Print does not die";
 is $open_lives, 1, "open does not die";
 my $sysopen_fh;
 close $fh;
+die if ! -f $test_file;
 sysopen($sysopen_fh, $test_file, O_RDONLY);
 my $a;
 ($a = <$sysopen_fh>) // warn $!;
@@ -48,8 +50,8 @@ is $a, 'words', "file has correct content";
 close($sysopen_fh) or die $!;
 %opened_files = ();
 open($fh, '>', $test_file) || die $!;
-ok $opened_files{"filename.txt"}, 'recorded that we opened filename.txt from three argument open';
-is keys %opened_files, 1, "correct number of keys after opened filename.txt twice";
+ok $opened_files{$test_file}, 'recorded that we opened the test file from three argument open';
+is keys %opened_files, 1, "correct number of keys after opened the test file twice";
 %opened_files = ();
 close $fh;
 
