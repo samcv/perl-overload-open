@@ -4,6 +4,7 @@
 #include "ppport.h"
 
 #define SAVE_AND_REPLACE_PP_IF_UNSET(real_function, op_to_replace, overload_function) do {\
+    MUTEX_LOCK(&OP_replace_mutex);\
     if (PL_ppaddr[op_to_replace] != overload_function) {\
         /* Is this a race in threaded perl? */\
         real_function = PL_ppaddr[op_to_replace];\
@@ -12,6 +13,7 @@
     else {\
         /* Would be nice if we could warn here. */\
     }\
+    MUTEX_UNLOCK(&OP_replace_mutex);\
 } while (0)
 #define overload_open_max_function_pointers 2
 OP* (*stuff_array[overload_open_max_function_pointers])(pTHX);
@@ -19,6 +21,9 @@ OP* (*stuff_array[overload_open_max_function_pointers])(pTHX);
 OP* (*real_pp_open)(pTHX) = NULL;
 OP* (*real_pp_sysopen)(pTHX) = NULL;
 #define overload_open_max_args 99
+#ifdef USE_ITHREADS
+static perl_mutex OP_replace_mutex;
+#endif
 PP(pp_overload_open) {
     dSP; dTARG;
     SV *hook, *sv;
