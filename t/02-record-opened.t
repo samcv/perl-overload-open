@@ -5,31 +5,39 @@ use feature qw/ say /;;
 use Test::More;
 use Carp qw/ confess /;
 use Fcntl;
-use overload::open 'record_opened_file';
 use File::Temp qw/ tempfile /;
 my $test_file = tempfile;
+my %opened_files;
+
+open my $fh99, '>', "fake";
+use overload::open;
+
+BEGIN {
+    sub record_opened_file {
+        my $filename;
+        open my $fh222, '>', $test_file;
+        if (@_ == 3) {
+            $filename = $_[2];
+        }
+        elsif (@_ == 2) {
+            $filename = $_[1];
+        }
+        else {
+            return;
+        }
+        if (exists $opened_files{$filename}) {
+        }
+        else {
+            $opened_files{$filename} = 1;
+        }
+    }
+    overload::open->override(\&record_opened_file);
+}
 sub cleanup {
     unlink $test_file;
 }
-my %opened_files;
-sub record_opened_file {
-    my $filename;
-    if (@_ == 3) {
-        $filename = $_[2];
-    }
-    elsif (@_ == 2) {
-        $filename = $_[1];
-    }
-    else {
-        return;
-    }
-    if (exists $opened_files{$filename}) {
-    }
-    else {
-        $opened_files{$filename} = 1;
-    }
-}
 my $global;
+ok(!exists $opened_files{fake}, "did not register we opened the file called 'fake'");
 unlink $test_file;
 my ($open_lives, $print_lives) = (0, 0);
 my $fh;

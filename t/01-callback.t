@@ -7,7 +7,7 @@ sub noop { undef };
 use File::Temp qw/ tempfile /;
 use Fcntl;
 my $temp_file = tempfile;
-use overload::open 'noop';
+use overload::open \&noop;
 my $fh;
 my $global;
 unlink $temp_file;
@@ -46,6 +46,8 @@ sub noop {
     $global = 99;
     undef;
 }
+done_testing();
+exit;
 use warnings;
 open $fh, '>', $temp_file || die $!;
 is $global, 99, "sets global variable using overloaded sub";

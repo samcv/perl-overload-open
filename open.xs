@@ -15,37 +15,54 @@
     }\
     MUTEX_UNLOCK(&OP_replace_mutex);\
 } while (0)
+
+#define overload_open_die_with_xs_sub 1
 #define overload_open_max_function_pointers 2
 OP* (*stuff_array[overload_open_max_function_pointers])(pTHX);
 /* Declare function pointers for OP's */
 OP* (*real_pp_open)(pTHX) = NULL;
 OP* (*real_pp_sysopen)(pTHX) = NULL;
+
 #define overload_open_max_args 99
 #ifdef USE_ITHREADS
 static perl_mutex OP_replace_mutex;
 #endif
+
+OP* (*real_pp_open)(pTHX);
+OP* (*real_pp_sysopen)(pTHX);
 PP(pp_overload_open) {
     dSP; dTARG;
-    SV *hook, *sv;
-    SV *sv_array[overload_open_max_args];
-    I32 count, ax, my_debug = 0, my_topmark_after, i;
+    SV *hook;
+    SV *sv, *sv_array[overload_open_max_args];
+    I32 count, c, ax, my_topmark_after, i, sv_array_pos = 0;
     /* hook is what we are calling instead of `open` */
-    /* This is probably going to be the slowest part of the code
-     * Think about caching this or provide an API to set it */
     hook = get_sv("overload::open::GLOBAL", 0);
-    if ( !SvPOK( hook ) ) {
+    int my_debug = 0;
+    /* If the hook evaluates as false, we should just call the original
+     * function ( AKA overload::open->override() has not been called yet ) */
+    if ( !SvTRUE( hook ) ) {
         return real_pp_open(aTHX);
     }
-
-    if (my_debug) {
-        printf("TOPs before ENTER\n");
-        sv_dump(TOPs);
-        printf("TOPm1s before ENTER\n");
-        sv_dump(TOPm1s);
+    /* Check to make sure we have a coderef */
+    if ( !SvROK( hook ) || SvTYPE( SvRV(hook) ) != SVt_PVCV ) {
+        warn("override::open expected a code reference, but got something else");
+        return real_pp_open(aTHX);
     }
-    int sv_array_pos = 0;
-    /* Top of stack contains the last argument to open() */
+    /* Get the CV* that the reference refers to */
+    CV* code_hook = (CV*) SvRV(hook);
+    if ( CvISXSUB( code_hook ) ) {
+        if ( overload_open_die_with_xs_sub )
+            die("overload::open Cowardly refusing to hook an XS sub");
+        return real_pp_open(aTHX);
+    }
+    if (my_debug) sv_dump(TOPs);
     sv = TOPs;
+    I32 depth = CvDEPTH(code_hook);
+    /* CvDEPTH > 0 that means our hook is calling OP_OPEN. This is ok
+     * just ensure we direct things to the original function */
+    if ( 0 < CvDEPTH( code_hook ) ) {
+        return real_pp_open(aTHX);
+    }
     /* Increase the ref count for sv. This may not actually be needed
      * but let's do it just in case.
      * TODO: can this cause memory leaks in case of an exception? (is there any
@@ -116,17 +133,12 @@ MODULE = overload::open	PACKAGE = overload::open PREFIX = overload_open_
 PROTOTYPES: ENABLE
 
 void
+_test_xs_function(...)
+    CODE:
+        printf("running test xs function\n");
+
+void
 _install_open(what_you_want)
     char *what_you_want
     CODE:
-        if (strcmp(what_you_want, "OP_OPEN") == 0) {
-            SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_open, OP_OPEN, Perl_pp_overload_open);
-        }
-        else if (strcmp(what_you_want, "OP_SYSOPEN") == 0) {
-            SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_sysopen, OP_SYSOPEN, Perl_pp_overload_open);
-        }
-        /* Just default to this */
-        else {
-            SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_open, OP_OPEN, Perl_pp_overload_open);
-        }
-
+        SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_open, OP_OPEN, Perl_pp_overload_open);

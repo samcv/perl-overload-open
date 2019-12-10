@@ -7,16 +7,19 @@ use XSLoader;
 
 our $GLOBAL;
 require overload::open;
+
 sub before_open {
 
 }
 #| overload::open->import(\&before_open);
 sub import {
-    my ( undef, $callback ) = @_;
-    $GLOBAL = $callback;
+    #$GLOBAL = $callback;
     return;
 }
-
+sub override {
+    my ( undef, $callback ) = @_;
+    $GLOBAL = $callback;
+}
 sub _global {
     1;
 }
