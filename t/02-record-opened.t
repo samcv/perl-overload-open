@@ -31,7 +31,7 @@ BEGIN {
             $opened_files{$filename} = 1;
         }
     }
-    overload::open->override(\&record_opened_file);
+    overload::open->prehook_open(\&record_opened_file);
 }
 sub cleanup {
     unlink $test_file;

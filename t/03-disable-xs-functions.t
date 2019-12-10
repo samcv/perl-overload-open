@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use overload::open;
-overload::open->override(\&overload::open::_test_xs_function);
+overload::open->prehook_open(\&overload::open::_test_xs_function);
 my $open_dies = 0;
 eval {
     open my $fh, '>', "filename";

@@ -3,7 +3,7 @@
 #include "XSUB.h"
 #include "ppport.h"
 
-#define SAVE_AND_REPLACE_PP_IF_UNSET(real_function, op_to_replace, overload_function) do {\
+#define SAVE_AND_REPLACE_PP_IF_UNSET(real_function, op_to_replace, overload_function, OP_replace_mutex) do {\
     MUTEX_LOCK(&OP_replace_mutex);\
     if (PL_ppaddr[op_to_replace] != overload_function) {\
         /* Is this a race in threaded perl? */\
@@ -25,35 +25,37 @@ OP* (*real_pp_sysopen)(pTHX) = NULL;
 
 #define overload_open_max_args 99
 #ifdef USE_ITHREADS
-static perl_mutex OP_replace_mutex;
+static perl_mutex OP_OPEN_replace_mutex;
+static perl_mutex OP_SYSOPEN_replace_mutex;
 #endif
 
-OP* (*real_pp_open)(pTHX);
-OP* (*real_pp_sysopen)(pTHX);
-PP(pp_overload_open) {
+OP * (*real_pp_open)(pTHX);
+OP * (*real_pp_sysopen)(pTHX);
+
+OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     dSP; dTARG;
     SV *hook;
     SV *sv, *sv_array[overload_open_max_args];
     I32 count, c, ax, my_topmark_after, i, sv_array_pos = 0;
     /* hook is what we are calling instead of `open` */
-    hook = get_sv("overload::open::GLOBAL", 0);
+    hook = get_sv(global, 0);
     int my_debug = 0;
     /* If the hook evaluates as false, we should just call the original
-     * function ( AKA overload::open->override() has not been called yet ) */
+     * function ( AKA overload::open->prehook_open() has not been called yet ) */
     if ( !SvTRUE( hook ) ) {
-        return real_pp_open(aTHX);
+        return real_pp_func(aTHX);
     }
     /* Check to make sure we have a coderef */
     if ( !SvROK( hook ) || SvTYPE( SvRV(hook) ) != SVt_PVCV ) {
         warn("override::open expected a code reference, but got something else");
-        return real_pp_open(aTHX);
+        return real_pp_func(aTHX);
     }
     /* Get the CV* that the reference refers to */
     CV* code_hook = (CV*) SvRV(hook);
     if ( CvISXSUB( code_hook ) ) {
         if ( overload_open_die_with_xs_sub )
-            die("overload::open Cowardly refusing to hook an XS sub");
-        return real_pp_open(aTHX);
+            die("overload::open error. Cowardly refusing to hook an XS sub into %s", opname);
+        return real_pp_func(aTHX);
     }
     if (my_debug) sv_dump(TOPs);
     sv = TOPs;
@@ -61,12 +63,13 @@ PP(pp_overload_open) {
     /* CvDEPTH > 0 that means our hook is calling OP_OPEN. This is ok
      * just ensure we direct things to the original function */
     if ( 0 < CvDEPTH( code_hook ) ) {
-        return real_pp_open(aTHX);
+        return real_pp_func(aTHX);
     }
+
     /* Increase the ref count for sv. This may not actually be needed
      * but let's do it just in case.
      * TODO: can this cause memory leaks in case of an exception? (is there any
-     * way that SvREFCNT_dec won't be called at the bottom of the function? */
+     * way that SvREFCNT_dec won't be called at the bottom of the function? goto? */
     SvREFCNT_inc(sv);
 
     ENTER;
@@ -113,7 +116,8 @@ PP(pp_overload_open) {
             SPAGAIN;
             /* POPMARK maybe isn't needed? Find out if this is true or not */
             //POPMARK;
-            /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
+            /* FREETMPS cleans up all stuff on the temporaries stack added since
+             * SAVETMPS was called */
         FREETMPS;
     /* Make like a tree and LEAVE */
     LEAVE;
@@ -125,7 +129,16 @@ PP(pp_overload_open) {
         sv_dump(TOPs);
         sv_dump(TOPm1s);
     }
-    return real_pp_open(aTHX);
+    return real_pp_func(aTHX);
+}
+
+PP(pp_overload_open) {
+    return overload_allopen("open", "overload::open::GLOBAL", real_pp_open);
+}
+
+PP(pp_overload_sysopen) {
+    return overload_allopen("sysopen", "overload::open::GLOBAL_TWO",
+        real_pp_sysopen);
 }
 
 MODULE = overload::open	PACKAGE = overload::open PREFIX = overload_open_
@@ -141,4 +154,10 @@ void
 _install_open(what_you_want)
     char *what_you_want
     CODE:
-        SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_open, OP_OPEN, Perl_pp_overload_open);
+        SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_open, OP_OPEN, Perl_pp_overload_open, OP_OPEN_replace_mutex);
+
+void
+_install_sysopen(what_you_want)
+    char *what_you_want
+    CODE:
+        SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_sysopen, OP_SYSOPEN, Perl_pp_overload_sysopen, OP_SYSOPEN_replace_mutex);
