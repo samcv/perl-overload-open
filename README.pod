@@ -4,10 +4,10 @@ overload::open - Hooks the native open function
 
 =head1 SYNOPSIS
 
+  use overload::open 'my_callback';
   my %opened_files;
   sub my_callback { return if !@_; $opened_files{shift}++ }
-  use overload::open 'my_callback';
-
+  overload::open->prehook_open(\&my_callback);
   open my $fh, '>', "foo.txt";
 
 =head1 DESCRIPTION
@@ -27,6 +27,8 @@ function.
 
 =head1 METHODS
 
+=over
+
 =item prehook_open
 
   use overload::open
@@ -42,6 +44,8 @@ will be passed the same arguments as open.
 
 Runs a hook before C<sysopen> by hooking C<OP_SYSOPEN>. Passes the same arguments
 to the provided sub reference as provided to sysopen.
+
+=back
 
 =head1 AUTHOR
 

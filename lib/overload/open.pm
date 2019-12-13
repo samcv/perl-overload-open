@@ -26,7 +26,7 @@ sub prehook_sysopen {
 sub _install_open; # Provided by open.xs
 sub _install_sysopen; # Provided by open.xs
 
-our $VERSION = '0.02';
+our $VERSION = '0.02.1';
 XSLoader::load( 'overload::open', $VERSION );
 _install_open("OP_OPEN");
 _install_sysopen("OP_SYSOPEN");
@@ -41,10 +41,10 @@ overload::open - Hooks the native open function
 
 =head1 SYNOPSIS
 
+  use overload::open 'my_callback';
   my %opened_files;
   sub my_callback { return if !@_; $opened_files{shift}++ }
-  use overload::open 'my_callback';
-
+  overload::open->prehook_open(\&my_callback);
   open my $fh, '>', "foo.txt";
 
 =head1 DESCRIPTION
@@ -64,6 +64,8 @@ function.
 
 =head1 METHODS
 
+=over
+
 =item prehook_open
 
   use overload::open
@@ -79,6 +81,8 @@ will be passed the same arguments as open.
 
 Runs a hook before C<sysopen> by hooking C<OP_SYSOPEN>. Passes the same arguments
 to the provided sub reference as provided to sysopen.
+
+=back
 
 =head1 AUTHOR
 

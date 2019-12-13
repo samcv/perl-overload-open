@@ -1,4 +1,7 @@
 Revision history for overload::open
+0.2.1 Dec 13, 2019
+    - Fix SYNOPSIS not being updated to API 0.2
+
 0.2 Dec 11, 2019
     - Changed API
 
