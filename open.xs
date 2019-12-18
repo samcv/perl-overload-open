@@ -70,19 +70,6 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     SV** mysp = sp;
     /* Save the number of items (number of arguments) */
     I32 myitems = items;
-    for ( c = 0; c < myitems; ++c ) {
-        SV* this_sv = *(mysp - c);
-        sv_array[sv_array_pos++] = this_sv;
-        /* Increase the ref count for sv. This may not actually be needed
-        * but let's do it just in case.
-        * TODO: can this cause memory leaks in case of an exception? (is there any
-        * way that SvREFCNT_dec won't be called at the bottom of the function? goto? */
-        SvREFCNT_inc(this_sv);
-        if (my_debug) {
-            printf("arg %i\n", i);
-            sv_dump(this_sv);
-        }
-    } 
     ENTER;
         /* Save the temporaries stack */
         SAVETMPS;
@@ -95,9 +82,12 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
              * mark stack. */
             PUSHMARK(SP); /* SP = Stack Pointer. */
                 EXTEND(SP, myitems);
-                for (i = sv_array_pos - 1; 0 <= i; i--) {
-                    XPUSHs(sv_2mortal(sv_array[i]));
-                }
+                for ( c = myitems - 1; 0 <= c; c-- ) {
+                    SV* mysv = sv_array[c] = *(mysp - c);
+                    //SvREFCNT_inc(mysv);
+                    SvREFCNT_inc(sv_array[c]);
+                    XPUSHs(sv_2mortal(sv_array[c]));
+                } 
             PUTBACK; /* Closing bracket for XSUB arguments */
             /* count is the number of arguments returned from the call. call_sv()
              * call calls the function `hook` */
