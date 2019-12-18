@@ -59,7 +59,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     }
     if (my_debug) sv_dump(TOPs);
     sv = TOPs;
-    I32 depth = CvDEPTH(code_hook);
+
     /* CvDEPTH > 0 that means our hook is calling OP_OPEN. This is ok
      * just ensure we direct things to the original function */
     if ( 0 < CvDEPTH( code_hook ) ) {
@@ -83,6 +83,8 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             mark stack. */
             PUSHMARK(SP); /* SP = Stack Pointer. */
                 /* Ensure there is enough room to push $TOPMARK number onto stack */
+                /* TODO TOPMARK does not actually contain the number of arguments!!!!
+                 * it just happened to in my testings */
                 EXTEND(SP, TOPMARK);
                 my_topmark_after = TOPMARK;
                 if (overload_open_max_args < my_topmark_after) {
