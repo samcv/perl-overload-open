@@ -1,4 +1,9 @@
 Revision history for overload::open
+
+0.31.1 Dec 18, 2019
+    - Make SYNOPSIS code actually work
+    - Wrap POD to ~80 characters
+
 0.31.0 Dec 18, 2019
     - Fix XS related bugs. Make sure we only get the
     correct number of items from the open call, and not
