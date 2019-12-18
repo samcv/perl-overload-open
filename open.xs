@@ -58,50 +58,45 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
         return real_pp_func(aTHX);
     }
     if (my_debug) sv_dump(TOPs);
-    sv = TOPs;
 
     /* CvDEPTH > 0 that means our hook is calling OP_OPEN. This is ok
      * just ensure we direct things to the original function */
     if ( 0 < CvDEPTH( code_hook ) ) {
         return real_pp_func(aTHX);
     }
-
-    /* Increase the ref count for sv. This may not actually be needed
-     * but let's do it just in case.
-     * TODO: can this cause memory leaks in case of an exception? (is there any
-     * way that SvREFCNT_dec won't be called at the bottom of the function? goto? */
-    SvREFCNT_inc(sv);
-
+    dMARK; // Sets up the `mark` variable
+    dITEMS; // Sets up the `items` variable
+    /* Save the stack pointer location */
+    SV** mysp = sp;
+    /* Save the number of items (number of arguments) */
+    I32 myitems = items;
+    for ( c = 0; c < myitems; ++c ) {
+        SV* this_sv = *(mysp - c);
+        sv_array[sv_array_pos++] = this_sv;
+        /* Increase the ref count for sv. This may not actually be needed
+        * but let's do it just in case.
+        * TODO: can this cause memory leaks in case of an exception? (is there any
+        * way that SvREFCNT_dec won't be called at the bottom of the function? goto? */
+        SvREFCNT_inc(this_sv);
+        if (my_debug) {
+            printf("arg %i\n", i);
+            sv_dump(this_sv);
+        }
+    } 
     ENTER;
         /* Save the temporaries stack */
         SAVETMPS;
             /* Marking has to do with getting the number of arguments ?
-            * maybe. pushmark is start of the arguments */
-            /* The value stack stores individual perl scalar values as temporaries between
-            expressions. Some perl expressions operate on entire lists; for that purpose
-            we need to know where on the stack each list begins. This is the purpose of the
-            mark stack. */
+             * maybe. pushmark is start of the arguments
+             *                                                      
+             * The value stack stores individual perl scalar values as temporaries between
+             * expressions. Some perl expressions operate on entire lists; for that purpose
+             * we need to know where on the stack each list begins. This is the purpose of the
+             * mark stack. */
             PUSHMARK(SP); /* SP = Stack Pointer. */
-                /* Ensure there is enough room to push $TOPMARK number onto stack */
-                /* TODO TOPMARK does not actually contain the number of arguments!!!!
-                 * it just happened to in my testings */
-                EXTEND(SP, TOPMARK);
-                my_topmark_after = TOPMARK;
-                if (overload_open_max_args < my_topmark_after) {
-                    my_topmark_after = overload_open_max_args;
-                }
-                /* Push to the value stack */
-                for (i = 1; i < my_topmark_after ; i++) {
-                    sv_array[sv_array_pos++] = ST(i);
-                    SvREFCNT_inc(ST(i));
-                    if (my_debug) {
-                        printf("arg %i\n", i);
-                        sv_dump(ST(i));
-                    }
-                }
-                sv_array[sv_array_pos++] = sv;
-                for (i = 0; i < sv_array_pos; i++) {
-                    XPUSHs(sv_array[i]);
+                EXTEND(SP, myitems);
+                for (i = sv_array_pos - 1; 0 <= i; i--) {
+                    XPUSHs(sv_2mortal(sv_array[i]));
                 }
             PUTBACK; /* Closing bracket for XSUB arguments */
             /* count is the number of arguments returned from the call. call_sv()
@@ -113,19 +108,23 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
                 /* This should really never happen. Put a warn in there because */
                 warn("call_sv was not supposed to get any arguments");
             }
-            /* SPAGAIN (no relation but makes me think of SPAGAghetti) */
-            /* SPAGAIN refetch the stack pointer.  Used after a callback. */
+            /* The purpose of the macro "SPAGAIN" is to refresh the local copy of
+             * the stack pointer. This is necessary because it is possible that
+             * the memory allocated to the Perl stack has been reallocated during
+             * the *call_pv* call
+             * SPAGAIN (no relation but makes me think of SPAGAghetti) */
             SPAGAIN;
+
             /* POPMARK maybe isn't needed? Find out if this is true or not */
             //POPMARK;
-            /* FREETMPS cleans up all stuff on the temporaries stack added since
-             * SAVETMPS was called */
+        /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
         FREETMPS;
     /* Make like a tree and LEAVE */
     LEAVE;
     /* Decrement the refcounts on what we passed to call_sv */
     for (i = 0; i < sv_array_pos; i++) {
-        SvREFCNT_dec(sv_array[i]);
+        //SvREFCNT_dec(sv_array[i]);
+        //printf("ref count of sv %i after: %i\n", i, SvREFCNT(sv_array[i]));
     }
     if (my_debug) {
         sv_dump(TOPs);
