@@ -42,7 +42,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     int my_debug = 0;
     /* If the hook evaluates as false, we should just call the original
      * function ( AKA overload::open->prehook_open() has not been called yet ) */
-    if ( !SvTRUE( hook ) ) {
+    if ( !hook || !SvTRUE( hook ) ) {
         return real_pp_func(aTHX);
     }
     /* Check to make sure we have a coderef */
