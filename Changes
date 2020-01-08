@@ -1,4 +1,11 @@
 Revision history for overload::open
+
+0.33.0 Jan 8, 2020
+    - This time we increase refcount at the start and decrease at the end, but
+      also increase them in the ones we push onto the stack.
+
+    - PS. the 0.32 module version is buggier than the 0.31
+
 0.32.0 Jan 8, 2020
     - Decrement refcount before returning from hook
 
