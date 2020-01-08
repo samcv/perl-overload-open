@@ -75,19 +75,20 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
         SAVETMPS;
             /* Marking has to do with getting the number of arguments ?
              * maybe. pushmark is start of the arguments
-             *                                                      
+             *
              * The value stack stores individual perl scalar values as temporaries between
              * expressions. Some perl expressions operate on entire lists; for that purpose
              * we need to know where on the stack each list begins. This is the purpose of the
              * mark stack. */
             PUSHMARK(SP); /* SP = Stack Pointer. */
-                EXTEND(SP, myitems);
+                //EXTEND(SP, myitems);
                 for ( c = myitems - 1; 0 <= c; c-- ) {
                     SV* mysv = sv_array[c] = *(mysp - c);
                     //SvREFCNT_inc(mysv);
                     SvREFCNT_inc(sv_array[c]);
-                    XPUSHs(sv_2mortal(sv_array[c]));
-                } 
+                    mXPUSHs(sv_array[c]);
+                }
+            /*  PL_stack_sp = sp */
             PUTBACK; /* Closing bracket for XSUB arguments */
             /* count is the number of arguments returned from the call. call_sv()
              * call calls the function `hook` */
@@ -103,6 +104,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
              * the memory allocated to the Perl stack has been reallocated during
              * the *call_pv* call
              * SPAGAIN (no relation but makes me think of SPAGAghetti) */
+            /*  sp = PL_stack_sp */
             SPAGAIN;
 
             /* POPMARK maybe isn't needed? Find out if this is true or not */
@@ -113,7 +115,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     LEAVE;
     /* Decrement the refcounts on what we passed to call_sv */
     for (i = 0; i < sv_array_pos; i++) {
-        //SvREFCNT_dec(sv_array[i]);
+        SvREFCNT_dec(sv_array[i]);
         //printf("ref count of sv %i after: %i\n", i, SvREFCNT(sv_array[i]));
     }
     if (my_debug) {

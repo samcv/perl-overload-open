@@ -1,4 +1,6 @@
 Revision history for overload::open
+0.32.0 Jan 8, 2020
+    - Decrement refcount before returning from hook
 
 0.31.1 Dec 18, 2019
     - Make SYNOPSIS code actually work

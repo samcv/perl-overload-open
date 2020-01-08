@@ -26,7 +26,7 @@ sub prehook_sysopen {
 sub _install_open; # Provided by open.xs
 sub _install_sysopen; # Provided by open.xs
 
-our $VERSION = '0.31.1';
+our $VERSION = '0.32.0';
 XSLoader::load( 'overload::open', $VERSION );
 _install_open("OP_OPEN");
 _install_sysopen("OP_SYSOPEN");
