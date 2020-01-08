@@ -35,8 +35,15 @@ OP * (*real_pp_sysopen)(pTHX);
 OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     dSP; dTARG;
     SV *hook;
+    SV *save_tops;
     SV *sv, *sv_array[overload_open_max_args];
+    I32 refcnts[overload_open_max_args];
     I32 count, c, ax, my_topmark_after, i, sv_array_pos = 0;
+    char buf[99];
+    save_tops = TOPs;
+    dMARK;
+    dITEMS; /* Sets up the `items` variable */
+
     /* hook is what we are calling instead of `open` */
     hook = get_sv(global, 0);
     int my_debug = 0;
@@ -57,32 +64,38 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             die("overload::open error. Cowardly refusing to hook an XS sub into %s", opname);
         return real_pp_func(aTHX);
     }
-    if (my_debug) sv_dump(TOPs);
 
     /* CvDEPTH > 0 that means our hook is calling OP_OPEN. This is ok
      * just ensure we direct things to the original function */
     if ( 0 < CvDEPTH( code_hook ) ) {
         return real_pp_func(aTHX);
     }
-    dMARK;  /* Sets up the `mark` variable */
-    dITEMS; /* Sets up the `items` variable */
+    //dMARK;  /* Sets up the `mark` variable */
+    //dITEMS; /* Sets up the `items` variable */
     /* Save the stack pointer location */
     SV** mysp = sp;
     /* Save the number of items (number of arguments) */
     I32 myitems = items + 1;
-    for ( c = 0; c < myitems; c++) {
-        printf("ST(%i)\n", c);
-        sv_dump(ST(c));
-    }
     for ( c = 0; c < myitems; c++ ) {
         sv_array[c] = ST(c);
-        printf("sv_array[%i]\n", c);
-        sv_dump(sv_array[c]);
+        refcnts[c] = SvREFCNT(sv_array[c]);
+        if (my_debug ) {
+            sprintf(buf, "79 ST(%i) to sv_array[%i]\n", c, c);
+            PerlIO_puts(PerlIO_stderr(), buf);
+            sv_dump(sv_array[c]);
+        }
 
-        SvREFCNT_inc(sv_array[c]);
+
+        //SvREFCNT_inc(sv_array[c]);
     }
-    printf("post sv_array TOPs\n");
-    sv_dump(TOPs);
+    for ( c = 0; c < myitems; c++) {
+        SvREFCNT_inc(ST(c));
+    }
+    SvREFCNT_inc(TOPs);
+    if (my_debug){
+        PerlIO_puts(PerlIO_stderr(), "post sv_array TOPs\n");
+        sv_dump(TOPs);
+    }
     ENTER;
         /* Save the temporaries stack */
         SAVETMPS;
@@ -97,14 +110,14 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
                 /* sp != mysp */
                 EXTEND(SP, myitems-1);
                 for ( c = 1; c < myitems; c++ ) {
-                    //SvREFCNT_inc(sv_array[c]);
                     //ST(c) = sv_array[myitems-1-c];
                     /* There is probably a macro for the line below, but
                      * I couldn't find it :( */
                     //SV* mysv = sv_array[c] = *(mysp - c);
                     SV *mysv = sv_array[c];
                     //SvREFCNT_inc(sv_array[c]);
-                    mPUSHs(mysv);
+                    //mPUSHs(mysv);
+                    PUSHs(mysv);
                     /* XPUSHs also extends by one (not needed?) */
                     /*XPUSHs(sv_2mortal(sv_array[c])); */
                 }
@@ -137,10 +150,11 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     I32 sv_array_start = 0;
     I32 sv_array_end = myitems - 1;
     I32 sv_array_items = sv_array_end - sv_array_start + 1;
-    for ( c = 0; c < myitems; c++) {
-        printf("141 ST(%i)\n", c);
+    /*for ( c = 0; c < myitems; c++) {
+        sprintf(buf, "141 ST(%i)\n", c);
+        PerlIO_puts(PerlIO_stderr(), buf);
         sv_dump(ST(c));
-    }
+    }*/
     if (1) {
         EXTEND(SP, sv_array_items);
         for ( c = sv_array_end; sv_array_start <= c; c-- ) {
@@ -149,38 +163,62 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             /* There is probably a macro for the line below, but
              * I couldn't find it :( */
             //SV* mysv = sv_array[c] = *(mysp - c);
-            printf("pushing sv_array[%i] to stack\n", c);
-            SV *mysv = sv_array[myitems-1-c];
-            SvREFCNT_inc(mysv);
+            I32 pos = myitems-1-c;
+            if (my_debug) {
+                sprintf(buf, "pushing sv_array[%i] to stack\n", pos);
+                PerlIO_puts(PerlIO_stderr(), buf);
+            }
+            SV *mysv = sv_array[pos];
+            if (my_debug) sv_dump(mysv);
+
+
+            //sprintf(buf, "171: ST(%i)\n", from_start);
+            //PerlIO_puts(PerlIO_stderr(), buf);
+            //sv_dump(ST(from_start));
+
+            //SvREFCNT_inc(mysv);
             mPUSHs(mysv);
             /* XPUSHs also extends by one (not needed?) */
             /*XPUSHs(sv_2mortal(sv_array[c])); */
         }
     }
-    for ( c = 0; c < myitems; c++) {
-        printf("160 ST(%i)\n", c);
-        sv_dump(ST(c));
+    if (my_debug) {
+        for ( c = 0; c < myitems; c++) {
+            sprintf(buf, "163 ST(%i)\n", c);
+            PerlIO_puts(PerlIO_stderr(), buf);
+            //printf("160 ST(%i)\n", c);
+            sv_dump(ST(c));
+        }
     }
     /* Decrement the refcounts on what we passed to call_sv */
     for (c = sv_array_end; sv_array_start <= c; c--) {
         I32 from_start = sv_array_end - c;
-        //printf("ST(%i)\n", c);
-        //sv_dump(ST(from_start));
+        /*sprintf(buf, "171: ST(%i)\n", c);
+        PerlIO_puts(PerlIO_stderr(), buf);
+        sv_dump(ST(from_start));*/
         if (ST(c) != sv_array[c]) {
             warn("not the same\n");
         }
         //sv_dump(sv_array[c]);
-        /*SvREFCNT_dec(sv_array[i]); */
+        //SvREFCNT_dec(sv_array[c]);
+        //sv_array[c] = NULL;
         /*printf("ref count of sv %i after: %i\n", i, SvREFCNT(sv_array[i])); */
     }
-    printf("post sv_array SP\n");
-    items = (I32)(SP - MARK);
-    printf("items: %i\n", items);
-    sv_dump(ST(sv_array_end + 3));
-    if (my_debug) {
-        sv_dump(TOPs);
-        sv_dump(TOPm1s);
+    for (c = 0; c < myitems; c++) {
+        if (refcnts[c] != SvREFCNT(sv_array[c])) {
+            sprintf(buf, "refcnts[%i] = %i but actually is %i\n", c, refcnts[c], SvREFCNT(sv_array[c]));
+            PerlIO_puts(PerlIO_stderr(), buf);
+        }
     }
+    items = (I32)(SP - MARK);
+    if (my_debug) {
+        sprintf(buf, "items: %i\n", items);
+        PerlIO_puts(PerlIO_stderr(), buf);
+    }
+    if (TOPs != save_tops) {
+        PerlIO_puts(PerlIO_stderr(), "oh no tops");
+    }
+
 
     return real_pp_func(aTHX);
 }
