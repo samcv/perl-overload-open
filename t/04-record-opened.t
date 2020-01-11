@@ -5,8 +5,9 @@ use feature qw/ say /;;
 use Test::More;
 use Carp qw/ confess /;
 use Fcntl;
-use File::Temp qw/ tempfile /;
-my $test_file = tempfile;
+use File::Temp;
+my $open_file = File::Temp->new->filename;
+my $sysopen_file = File::Temp->new->filename;
 my (%open_hash, %sysopen_hash);
 use overload::open;
 
@@ -47,14 +48,10 @@ BEGIN {
     overload::open->prehook_sysopen(\&record_opened_file_sysopen);
 }
 my $sysopen_fh;
-say STDERR "before";
-sysopen($sysopen_fh, 'sysopen_file', O_RDONLY);
-say STDERR "after";
-open my $fh99, '>', "open_file";
-say STDERR "after2";
-use Data::Dumper;
-is $open_hash{open_file}, 1, "file opened with `open()` is in open hash";
-is $sysopen_hash{sysopen_file}, 1, "file opened with `sysopen()` is in sysopen hash";
+sysopen $sysopen_fh, $sysopen_file, O_RDONLY;
+open my $fh99, '>', "$open_file";
+is $open_hash{$open_file}, 1, "file opened with `open()` is in open hash";
+is $sysopen_hash{$sysopen_file}, 1, "file opened with `sysopen()` is in sysopen hash";
 is keys %sysopen_hash, 1, "Correct number of keys in sysopen hash";
 is keys %open_hash, 1, "Correct number of keys in open hash";
 done_testing();
