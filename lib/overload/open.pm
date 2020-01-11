@@ -4,32 +4,27 @@ use warnings;
 use 5.009_004;
 use feature ':5.10';
 use XSLoader;
-
-our $GLOBAL;
-our $GLOBAL_TWO;
+our $VERSION = '1.00.2';
+our $GLOBAL_OPEN;
+our $GLOBAL_SYSOPEN;
 require overload::open;
-
-sub import {
-    return;
-}
 
 sub prehook_open {
     my ( undef, $callback ) = @_;
-    $GLOBAL = $callback;
+    $GLOBAL_OPEN = $callback;
 }
 
 sub prehook_sysopen {
     my ( undef, $callback ) = @_;
-    $GLOBAL_TWO = $callback;
+    $GLOBAL_SYSOPEN = $callback;
 }
 
-sub _install_open; # Provided by open.xs
+sub _install_open;    # Provided by open.xs
 sub _install_sysopen; # Provided by open.xs
 
-our $VERSION = '1.00.1';
 XSLoader::load( 'overload::open', $VERSION );
-_install_open("OP_OPEN");
-_install_sysopen("OP_SYSOPEN");
+_install_open();
+_install_sysopen();
 
 q[Open sesame seed.];
 

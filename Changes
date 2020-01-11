@@ -1,5 +1,8 @@
 Revision history for overload::open
 
+1.00.2 Jan 11, 2020
+    - Add provides to META and some code cleanup
+
 1.00.1 Jan 11, 2020
     - Fix a lot of issues with META files and MANIFEST
     - Don't put files in build directory when running tests

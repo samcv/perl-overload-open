@@ -5,7 +5,8 @@ use warnings;
 BEGIN { require 5.9.4; }
 
 use ExtUtils::MakeMaker 7.34;
-
+use Module::Metadata;
+my $meta_spec = 2;
 
 
 my %WriteMakefileArgs = (
@@ -13,11 +14,13 @@ my %WriteMakefileArgs = (
   'AUTHOR' => 'Samantha McVey <samantham@posteo.net.com>',
   'BUILD_REQUIRES' => {},
   'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '7.34'
+    'ExtUtils::MakeMaker' => '7.34',
+    'Module::Metadata' => 0,
   },
   'LICENSE' => 'perl',
   'META_MERGE' => {
-    'meta-spec' => { version => 2 },
+    provides => Module::Metadata->provides( version => $meta_spec, dir => 'lib' ),
+    'meta-spec' => { version => $meta_spec },
     'resources' => {
       'repository' => {
         'url' => 'https://github.com/samcv/perl-overload-open.git',

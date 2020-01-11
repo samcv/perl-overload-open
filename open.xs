@@ -5,9 +5,10 @@
 
 #define SAVE_AND_REPLACE_PP_IF_UNSET(real_function, op_to_replace, overload_function, OP_replace_mutex) do {\
     MUTEX_LOCK(&OP_replace_mutex);\
-    if (PL_ppaddr[op_to_replace] != overload_function) {\
-        /* Is this a race in threaded perl? */\
+    if (!real_function) {\
         real_function = PL_ppaddr[op_to_replace];\
+    }\
+    if (PL_ppaddr[op_to_replace] != overload_function) {\
         PL_ppaddr[op_to_replace] = overload_function;\
     }\
     else {\
@@ -98,11 +99,11 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
 }
 
 PP(pp_overload_open) {
-    return overload_allopen("open", "overload::open::GLOBAL", real_pp_open);
+    return overload_allopen("open", "overload::open::GLOBAL_OPEN", real_pp_open);
 }
 
 PP(pp_overload_sysopen) {
-    return overload_allopen("sysopen", "overload::open::GLOBAL_TWO",
+    return overload_allopen("sysopen", "overload::open::GLOBAL_SYSOPEN",
         real_pp_sysopen);
 }
 
@@ -116,13 +117,11 @@ _test_xs_function(...)
         printf("running test xs function\n");
 
 void
-_install_open(what_you_want)
-    char *what_you_want
+_install_open()
     CODE:
         SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_open, OP_OPEN, Perl_pp_overload_open, OP_OPEN_replace_mutex);
 
 void
-_install_sysopen(what_you_want)
-    char *what_you_want
+_install_sysopen()
     CODE:
         SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_sysopen, OP_SYSOPEN, Perl_pp_overload_sysopen, OP_SYSOPEN_replace_mutex);
