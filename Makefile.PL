@@ -9,20 +9,29 @@ use ExtUtils::MakeMaker 7.34;
 
 
 my %WriteMakefileArgs = (
-  'ABSTRACT' => 'Hooks the native string open() function',
+  'ABSTRACT_FROM' => 'lib/overload/open.pm',
   'AUTHOR' => 'Samantha McVey <samantham@posteo.net.com>',
   'BUILD_REQUIRES' => {},
   'CONFIGURE_REQUIRES' => {
     'ExtUtils::MakeMaker' => '7.34'
   },
-  'DISTNAME' => 'overload-open',
   'LICENSE' => 'perl',
+  'META_MERGE' => {
+    'meta-spec' => { version => 2 },
+    'resources' => {
+      'repository' => {
+        'url' => 'https://github.com/samcv/perl-overload-open.git',
+        'web' => 'https://github.com/samcv/perl-overload-open',
+        'type' => 'git',
+      },
+    },
+  },
   'NAME' => 'overload::open',
   'PREREQ_PM' => {},
   'VERSION_FROM' => 'lib/overload/open.pm',
   'test' => {
     'TESTS' => 't/*.t'
-  }
+  },
 );
 
 
