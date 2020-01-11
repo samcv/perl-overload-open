@@ -50,8 +50,8 @@ BEGIN {
 my $sysopen_fh;
 sysopen $sysopen_fh, $sysopen_file, O_RDONLY;
 open my $fh99, '>', "$open_file";
-is $open_hash{$open_file}, 1, "file opened with `open()` is in open hash";
-is $sysopen_hash{$sysopen_file}, 1, "file opened with `sysopen()` is in sysopen hash";
+is $open_hash{$open_file}, 1, "file opened with open() is in open hash";
+is $sysopen_hash{$sysopen_file}, 1, "file opened with sysopen() is in sysopen hash";
 is keys %sysopen_hash, 1, "Correct number of keys in sysopen hash";
 is keys %open_hash, 1, "Correct number of keys in open hash";
 done_testing();
