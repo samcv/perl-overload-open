@@ -72,8 +72,11 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             /* Save the number of items (number of arguments) */
             ssize_t myitems = (ssize_t)(sp - PL_stack_base - *PL_markstack_ptr);
             PUSHMARK(sp);
+                if (myitems < 0) {
+                    warn("overload::open internal error.");
+                }
                 EXTEND(sp, myitems);
-                I32 c;
+                ssize_t c;
                 for ( c = 0; c < myitems; c++) {
                     /* We are going from last to first */
                     ssize_t i = myitems - 1 - c;
@@ -81,8 +84,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
                 }
             /*  PL_stack_sp = sp */
             PUTBACK; /* Closing bracket for XSUB arguments */
-            I32 count = 0;
-            count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD );
+            I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD );
             /* G_VOID and G_DISCARD should cause us to not ask for any return
              * arguments from the call. */
             if (count) warn("call_sv was not supposed to get any arguments");
