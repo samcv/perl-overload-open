@@ -4,9 +4,10 @@ use warnings;
 use 5.009_004;
 use feature ':5.10';
 use XSLoader;
-our $VERSION = '1.00.2';
+our $VERSION = '1.01.0';
 our $GLOBAL_OPEN;
 our $GLOBAL_SYSOPEN;
+our $SUPPRESS_WARNINGS;
 require overload::open;
 
 sub prehook_open {
@@ -18,7 +19,10 @@ sub prehook_sysopen {
     my ( undef, $callback ) = @_;
     $GLOBAL_SYSOPEN = $callback;
 }
-
+sub suppress_warnings {
+    my ( undef, $value ) = @_;
+    $SUPPRESS_WARNINGS = $value;
+}
 sub _install_open;    # Provided by open.xs
 sub _install_sysopen; # Provided by open.xs
 

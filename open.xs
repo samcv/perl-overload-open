@@ -72,7 +72,12 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             /* Save the number of items (number of arguments) */
             ssize_t myitems = (ssize_t)(sp - PL_stack_base - *PL_markstack_ptr);
             if (myitems < 0) {
-                warn("overload::open internal error. Unable to save arguments, unexpected behavior could also occur in your program."); 
+                SV *suppress_warnings = get_sv("overload::open::SUPPRESS_WARNINGS", 0);
+                if (SvTRUE(suppress_warnings)) {
+                }
+                else {
+                    warn("overload::open internal error. Unable to save arguments, unexpected behavior could also occur in your program.");
+                }
             }
             else {
                 PUSHMARK(sp);
