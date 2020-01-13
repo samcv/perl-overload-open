@@ -4,7 +4,7 @@ use warnings;
 use 5.009_004;
 use feature ':5.10';
 use XSLoader;
-our $VERSION = '1.01.0';
+our $VERSION = '1.02.0';
 our $GLOBAL_OPEN;
 our $GLOBAL_SYSOPEN;
 our $SUPPRESS_WARNINGS;
@@ -84,6 +84,12 @@ will be passed the same arguments as open.
 
 Runs a hook before C<sysopen> by hooking C<OP_SYSOPEN>. Passes the same arguments
 to the provided sub reference as provided to sysopen.
+
+=item suppress_warnings
+
+  overload::open->suppress_warnings(1)
+
+Suppress runtime warnings
 
 =back
 
