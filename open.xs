@@ -71,29 +71,31 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             SV **mark = PL_stack_base + *PL_markstack_ptr;
             /* Save the number of items (number of arguments) */
             ssize_t myitems = (ssize_t)(sp - PL_stack_base - *PL_markstack_ptr);
-            PUSHMARK(sp);
-                if (myitems < 0) {
-                    warn("overload::open internal error.");
-                }
-                EXTEND(sp, myitems);
-                ssize_t c;
-                for ( c = 0; c < myitems; c++) {
-                    /* We are going from last to first */
-                    ssize_t i = myitems - 1 - c;
-                    mPUSHs( newSVsv(*(mysp - i)) );
-                }
-            /*  PL_stack_sp = sp */
-            PUTBACK; /* Closing bracket for XSUB arguments */
-            I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD );
-            /* G_VOID and G_DISCARD should cause us to not ask for any return
-             * arguments from the call. */
-            if (count) warn("call_sv was not supposed to get any arguments");
-            /* The purpose of the macro "SPAGAIN" is to refresh the local copy of
-             * the stack pointer. This is necessary because it is possible that
-             * the memory allocated to the Perl stack has been reallocated during
-             * the *call_pv* call */
-            /*  sp = PL_stack_sp */
-            SPAGAIN;
+            if (myitems < 0) {
+                warn("overload::open internal error. Unable to save arguments, unexpected behavior could also occur in your program."); 
+            }
+            else {
+                PUSHMARK(sp);
+                    EXTEND(sp, myitems);
+                    ssize_t c;
+                    for ( c = 0; c < myitems; c++) {
+                        /* We are going from last to first */
+                        ssize_t i = myitems - 1 - c;
+                        mPUSHs( newSVsv(*(mysp - i)) );
+                    }
+                /*  PL_stack_sp = sp */
+                PUTBACK; /* Closing bracket for XSUB arguments */
+                I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD );
+                /* G_VOID and G_DISCARD should cause us to not ask for any return
+                * arguments from the call. */
+                if (count) warn("call_sv was not supposed to get any arguments");
+                /* The purpose of the macro "SPAGAIN" is to refresh the local copy of
+                * the stack pointer. This is necessary because it is possible that
+                * the memory allocated to the Perl stack has been reallocated during
+                * the *call_pv* call */
+                /*  sp = PL_stack_sp */
+                SPAGAIN;
+            }
 
         /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
         FREETMPS;
