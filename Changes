@@ -1,5 +1,10 @@
 Revision history for overload::open
 
+1.03.0 Jan 13, 2020
+    - Add some extra paranoia for ensuring we don't run our hook inside another
+      hook. (check CvDEPTH for sysopen in open's hook and check CvDEPTH for
+      open in sysopen's hook).
+
 1.02.0 Jan 13, 2020
     - Add an option to suppress warnings. For now this is only
       applying to an internal error (so as long as you setup overload::open

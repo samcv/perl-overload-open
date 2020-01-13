@@ -32,16 +32,37 @@ static perl_mutex OP_SYSOPEN_replace_mutex;
 
 OP * (*real_pp_open)(pTHX);
 OP * (*real_pp_sysopen)(pTHX);
-
+SV * cached_hook_open = NULL;
+SV * cached_hook_sysopen = NULL;
+CV * cached_code_hook_open = NULL;
+CV * cached_code_hook_sysopen = NULL;
+bool overload_is_sysopen(char *opname) {
+    return strcmp(opname, "sysopen") == 0;
+}
+bool overload_is_open(char *opname) {
+    return strcmp(opname, "open") == 0;
+}
+void set_cached_hooks_for_op (char *opname, SV *hook, CV *code_hook) {
+    if (overload_is_open(opname)) {
+        cached_hook_open      = hook;
+        cached_code_hook_open = code_hook;
+    }
+    if (overload_is_sysopen(opname)) {
+        cached_hook_sysopen      = hook;
+        cached_code_hook_sysopen = code_hook;
+    }
+}
 OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     SV *hook = get_sv(global, 0);
     /* If the hook evaluates as false, we should just call the original
      * function ( AKA overload::open->prehook_open() has not been called yet ) */
     if ( !hook || !SvTRUE( hook ) ) {
+        set_cached_hooks_for_op(opname, NULL, NULL);
         return real_pp_func(aTHX);
     }
     /* Check to make sure we have a coderef */
     if ( !SvROK( hook ) || SvTYPE( SvRV(hook) ) != SVt_PVCV ) {
+        set_cached_hooks_for_op(opname, NULL, NULL);
         warn("override::open expected a code reference, but got something else");
         return real_pp_func(aTHX);
     }
@@ -52,8 +73,23 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             die("overload::open error. Cowardly refusing to hook an XS sub into %s", opname);
         return real_pp_func(aTHX);
     }
+    /* Found suitable hook. We can cache in now */
+    set_cached_hooks_for_op(opname, hook, code_hook);
+
     /* CvDEPTH > 0 that means our hook is calling OP_OPEN. This is ok
      * just ensure we direct things to the original function */
+    /* calling on the cached allows us to check the depth for both of the code functions */
+    if (cached_code_hook_open) {
+        if ( 0 < CvDEPTH( cached_code_hook_open ) ) {
+            return real_pp_func(aTHX);
+        }
+    }
+    if (cached_code_hook_sysopen) {
+        if ( 0 < CvDEPTH( cached_code_hook_sysopen ) ) {
+            return real_pp_func(aTHX);
+        }
+    }
+    /* Once more for paranoia */
     if ( 0 < CvDEPTH( code_hook ) ) {
         return real_pp_func(aTHX);
     }
@@ -105,8 +141,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
         /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
         FREETMPS;
     LEAVE;
-    OP *real_rtrn = real_pp_func(aTHX);
-    return real_rtrn;
+    return real_pp_func(aTHX);
 }
 
 PP(pp_overload_open) {
