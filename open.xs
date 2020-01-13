@@ -74,8 +74,10 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             PUSHMARK(sp);
                 EXTEND(sp, myitems);
                 I32 c;
-                for ( c = myitems - 1; 0 <= c; c-- ) {
-                    mPUSHs( newSVsv(*(mysp - c)) );
+                for ( c = 0; c < myitems; c++) {
+                    /* We are going from last to first */
+                    ssize_t i = myitems - 1 - c;
+                    mPUSHs( newSVsv(*(mysp - i)) );
                 }
             /*  PL_stack_sp = sp */
             PUTBACK; /* Closing bracket for XSUB arguments */
