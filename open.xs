@@ -70,7 +70,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             /* Initialize mark ourselves instead. */
             SV **mark = PL_stack_base + *PL_markstack_ptr;
             /* Save the number of items (number of arguments) */
-            I32 myitems = (I32)(sp - mark);
+            ssize_t myitems = (ssize_t)(sp - PL_stack_base - *PL_markstack_ptr);
             PUSHMARK(sp);
                 EXTEND(sp, myitems);
                 I32 c;
