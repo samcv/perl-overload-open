@@ -106,7 +106,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             /* Initialize mark ourselves instead. */
             SV **mark = PL_stack_base + *PL_markstack_ptr;
             /* Save the number of items (number of arguments) */
-            ssize_t myitems = (ssize_t)(sp - PL_stack_base - *PL_markstack_ptr);
+            ssize_t myitems = (ssize_t)(sp - (PL_stack_base + *PL_markstack_ptr));
             if (myitems < 0) {
                 SV *suppress_warnings = get_sv("overload::open::SUPPRESS_WARNINGS", 0);
                 if (SvTRUE(suppress_warnings)) {

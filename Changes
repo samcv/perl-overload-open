@@ -1,5 +1,8 @@
 Revision history for overload::open
 
+1.4.0 Jan 13, 2020
+    - Fix possible issue in pointing math
+
 1.03.0 Jan 13, 2020
     - Add some extra paranoia for ensuring we don't run our hook inside another
       hook. (check CvDEPTH for sysopen in open's hook and check CvDEPTH for
