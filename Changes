@@ -1,5 +1,8 @@
 Revision history for overload::open
 
+1.5.0 Jan 14, 2020
+    - Use another alternative for saving the mark, allowing us to do a popmark before returning
+
 1.4.0 Jan 13, 2020
     - Fix possible issue in pointing math
 

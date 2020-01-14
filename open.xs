@@ -93,6 +93,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     if ( 0 < CvDEPTH( code_hook ) ) {
         return real_pp_func(aTHX);
     }
+    I32 blk_oldmarksp_  = PL_markstack_ptr - PL_markstack;
     ENTER;
         /* Save the temporaries stack */
         SAVETMPS;
@@ -116,7 +117,6 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
                 }
             }
             else {
-                I32 blk_oldmarksp_  = PL_markstack_ptr - PL_markstack;
                 PUSHMARK(sp);
                     EXTEND(sp, myitems);
                     ssize_t c;
@@ -128,7 +128,8 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
                 /*  PL_stack_sp = sp */
                 PUTBACK; /* Closing bracket for XSUB arguments */
                 I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD );
-                PL_markstack_ptr = PL_markstack + blk_oldmarksp_;
+
+
                 /* G_VOID and G_DISCARD should cause us to not ask for any return
                 * arguments from the call. */
                 if (count) warn("call_sv was not supposed to get any arguments");
@@ -143,6 +144,8 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
         /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
         FREETMPS;
     LEAVE;
+    POPMARK;
+    PL_markstack_ptr = PL_markstack + blk_oldmarksp_;
     return real_pp_func(aTHX);
 }
 
