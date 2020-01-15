@@ -127,6 +127,8 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
                     }
                 /*  PL_stack_sp = sp */
                 PUTBACK; /* Closing bracket for XSUB arguments */
+                 /* Use G_EVAL to avoid changing state. Almost as important is G_KEEPERR
+                  * which makes sure G_EVAL doesn't change $@ */
                 I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD| G_EVAL|G_KEEPERR );
 
 
