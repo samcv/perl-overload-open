@@ -127,7 +127,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
                     }
                 /*  PL_stack_sp = sp */
                 PUTBACK; /* Closing bracket for XSUB arguments */
-                I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD );
+                I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD| G_EVAL|G_KEEPERR );
 
 
                 /* G_VOID and G_DISCARD should cause us to not ask for any return
@@ -144,7 +144,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
         /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
         FREETMPS;
     LEAVE;
-    POPMARK;
+    //POPMARK;
     PL_markstack_ptr = PL_markstack + blk_oldmarksp_;
     return real_pp_func(aTHX);
 }
