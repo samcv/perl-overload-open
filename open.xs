@@ -100,11 +100,11 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             SV **sp = PL_stack_sp;
             /* Save the stack pointer location */
             SV **mysp = PL_stack_sp;
-            //assert((PL_markstack_ptr > PL_markstack) || !"MARK underflow");
+            /*assert((PL_markstack_ptr > PL_markstack) || !"MARK underflow"); */
             /* DON'T call dMARK... it has unintended side effects.
              * it actually calls POPMARK! sad! */
             /* Initialize mark ourselves instead. */
-            //SV **mark = PL_stack_base + *PL_markstack_ptr;
+            /* SV **mark = PL_stack_base + *PL_markstack_ptr; */
             /* Save the number of items (number of arguments) */
             ssize_t myitems = (ssize_t)(sp - (PL_stack_base + *PL_markstack_ptr));
             if (myitems < 0)
