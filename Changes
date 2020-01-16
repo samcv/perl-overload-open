@@ -1,5 +1,9 @@
 Revision history for overload::open
 
+1.8.0 Jan 16, 2020
+    - Actually add G_EVAL|G_KEEPERR. Add tests which test what happens if our hook
+      dies inside of it.
+
 1.7.0 Jan 16, 2020
     - Revert base code to 1.4.0 since this had the cleanest cpan testers yet,
       but keep the G_EVAL|G_KEEPERR flags to call_sv()
