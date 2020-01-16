@@ -93,7 +93,6 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     if ( 0 < CvDEPTH( code_hook ) ) {
         return real_pp_func(aTHX);
     }
-    I32 blk_oldmarksp_  = PL_markstack_ptr - PL_markstack;
     ENTER;
         /* Save the temporaries stack */
         SAVETMPS;
@@ -108,46 +107,33 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             SV **mark = PL_stack_base + *PL_markstack_ptr;
             /* Save the number of items (number of arguments) */
             ssize_t myitems = (ssize_t)(sp - (PL_stack_base + *PL_markstack_ptr));
-            if (myitems < 0) {
-                SV *suppress_warnings = get_sv("overload::open::SUPPRESS_WARNINGS", 0);
-                if (SvTRUE(suppress_warnings)) {
-                }
-                else {
-                    warn("overload::open internal error. Unable to save arguments, unexpected behavior could also occur in your program.");
-                }
-            }
-            else {
-                PUSHMARK(sp);
-                    EXTEND(sp, myitems);
-                    ssize_t c;
-                    for ( c = 0; c < myitems; c++) {
-                        /* We are going from last to first */
-                        ssize_t i = myitems - 1 - c;
-                        mPUSHs( newSVsv(*(mysp - i)) );
-                    }
-                /*  PL_stack_sp = sp */
-                PUTBACK; /* Closing bracket for XSUB arguments */
-                 /* Use G_EVAL to avoid changing state. Almost as important is G_KEEPERR
-                  * which makes sure G_EVAL doesn't change $@ */
-                I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD| G_EVAL|G_KEEPERR );
+            if (myitems < 0)
+                DIE(aTHX_ "panic: overload::open internal error. This should not happen.");
 
-
-                /* G_VOID and G_DISCARD should cause us to not ask for any return
-                * arguments from the call. */
-                if (count) warn("call_sv was not supposed to get any arguments");
-                /* The purpose of the macro "SPAGAIN" is to refresh the local copy of
-                * the stack pointer. This is necessary because it is possible that
-                * the memory allocated to the Perl stack has been reallocated during
-                * the *call_pv* call */
-                /*  sp = PL_stack_sp */
-                SPAGAIN;
-            }
+            PUSHMARK(sp);
+                EXTEND(sp, myitems);
+                ssize_t c;
+                for ( c = 0; c < myitems; c++) {
+                    /* We are going from last to first */
+                    ssize_t i = myitems - 1 - c;
+                    mPUSHs( newSVsv(*(mysp - i)) );
+                }
+            /*  PL_stack_sp = sp */
+            PUTBACK; /* Closing bracket for XSUB arguments */
+            I32 count = call_sv( (SV*)code_hook, G_VOID | G_DISCARD );
+            /* G_VOID and G_DISCARD should cause us to not ask for any return
+            * arguments from the call. */
+            if (count) warn("call_sv was not supposed to get any arguments");
+            /* The purpose of the macro "SPAGAIN" is to refresh the local copy of
+            * the stack pointer. This is necessary because it is possible that
+            * the memory allocated to the Perl stack has been reallocated during
+            * the *call_pv* call */
+            /*  sp = PL_stack_sp */
+            SPAGAIN;
 
         /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
         FREETMPS;
     LEAVE;
-    //POPMARK;
-    PL_markstack_ptr = PL_markstack + blk_oldmarksp_;
     return real_pp_func(aTHX);
 }
 

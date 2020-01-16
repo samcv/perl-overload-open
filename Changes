@@ -1,5 +1,11 @@
 Revision history for overload::open
 
+1.7.0 Jan 16, 2020
+    - Revert base code to 1.4.0 since this had the cleanest cpan testers yet,
+      but keep the G_EVAL|G_KEEPERR flags to call_sv()
+    - Remove my warn() code which covered up a fatal panic condition and let Perl die if
+      this occurs.
+
 1.6.0 Jan 15, 2020
     - Use G_EVAL|G_KEEPERR flags to call_sv()
       These will ensure the hook does not change `$@' which can break
