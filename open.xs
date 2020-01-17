@@ -108,7 +108,7 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             /* Save the number of items (number of arguments) */
             ssize_t myitems = (ssize_t)(sp - (PL_stack_base + *PL_markstack_ptr));
             if (myitems < 0)
-                DIE(aTHXR "panic: overload::open internal error. This should not happen.");
+                DIE(aTHXR_ "panic: overload::open internal error. This should not happen.");
 
             PUSHMARK(sp);
                 EXTEND(sp, myitems);
