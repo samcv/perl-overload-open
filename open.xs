@@ -103,8 +103,9 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     if (PL_markstack_ptr[-1] > TOPMARK) {
         POPMARK;
     }
-    /* Initialize mark ourselves */
-    SV **mark = PL_stack_base + *PL_markstack_ptr;
+    /* Initialize mark ourselves. (removed for now, but in case we need mark again
+     * I am leaving this part in */
+    /* SV **mark = PL_stack_base + *PL_markstack_ptr; */
     ssize_t myitems = (ssize_t)(sp - (PL_stack_base + *PL_markstack_ptr));
     ENTER;
         /* Save the temporaries stack */
