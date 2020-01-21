@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.004_000;
 use XSLoader;
-our $VERSION = '1.9.0';
+our $VERSION = '1.9.1';
 our $GLOBAL_OPEN;
 our $GLOBAL_SYSOPEN;
 our $SUPPRESS_WARNINGS;
