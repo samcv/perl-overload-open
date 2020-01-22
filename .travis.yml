@@ -29,6 +29,6 @@ install:
 before_script:
   - coverage-setup
 script:
-  - prove -l -j$(test-jobs) $(test-files)   # parallel testing
+  - prove -b -l -j$(test-jobs) $(test-files)   # parallel testing
 after_success:
   - coverage-report
