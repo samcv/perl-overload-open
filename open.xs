@@ -100,13 +100,18 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
     /* This is copied from pp_ctl.c It fixes things on freebsd 13, and also
      * under certain circumstances under Linux. I don't know why it's actually
      * needed. But apparently you need to POPMARK but only in certain cases */
-    if (PL_markstack_ptr[-1] > TOPMARK) {
-        POPMARK;
+    ssize_t myitems = 0;
+    printf("markstack_ptr %p *PL_markstack_ptr %i PL_markstack %p PL_stack_base %p PL_stack_sp %p\n", PL_markstack_ptr, *PL_markstack_ptr, PL_markstack, PL_stack_base, PL_stack_sp);
+    if (PL_markstack_ptr[0] < 0 && 0) {
+        POPMARK; //PL_markstack_ptr--;
+        myitems = *PL_markstack_ptr;
+        printf("popmark\n");
+        printf("markstack_ptr %p *PL_markstack_ptr %i PL_markstack %p PL_stack_base %p PL_stack_sp %p\n", PL_markstack_ptr, *PL_markstack_ptr, PL_markstack, PL_stack_base, PL_stack_sp);
     }
     /* Initialize mark ourselves. (removed for now, but in case we need mark again
      * I am leaving this part in */
     /* SV **mark = PL_stack_base + *PL_markstack_ptr; */
-    ssize_t myitems = (ssize_t)(sp - (PL_stack_base + *PL_markstack_ptr));
+    //if (!myitems) myitems = (ssize_t)(sp - (PL_stack_base + *PL_markstack_ptr));
     ENTER;
         /* Save the temporaries stack */
         SAVETMPS;
@@ -115,15 +120,21 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
             SV **mysp = PL_stack_sp;
             /*assert((PL_markstack_ptr > PL_markstack) || !"MARK underflow"); */
             /* Save the number of items (number of arguments) */
-            if (myitems < 0)
-                DIE(aTHXR_ "panic: overload::open internal error. This should not happen.");
+            //if (myitems < 0)
+               // DIE(aTHXR_ "panic: overload::open internal error. This should not happen.");
 
             PUSHMARK(sp);
+    printf("markstack_ptr %p *PL_markstack_ptr %i PL_markstack %p PL_stack_base %p PL_stack_sp %p\n", PL_markstack_ptr, *PL_markstack_ptr, PL_markstack, PL_stack_base, PL_stack_sp);
+                myitems = *PL_markstack_ptr;
+                //mysp = PL_stack_base - PL_markstack_ptr[0];
                 EXTEND(sp, myitems);
                 ssize_t c;
-                for ( c = 0; c < myitems; c++) {
+                for ( c = 0; c < *PL_markstack_ptr; c++) {
                     /* We are going from last to first */
                     ssize_t i = myitems - 1 - c;
+                    SV **where = mysp - i;
+                    printf("where %p c = %i i = %i myitems = %i\n", where, c, i, myitems);
+                    printf("c is %i\n", c);
                     mPUSHs( newSVsv(*(mysp - i)) );
                 }
             /*  PL_stack_sp = sp */
