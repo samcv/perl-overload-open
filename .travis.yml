@@ -3,7 +3,7 @@ os:
   - linux
   - osx
 perl:
-  - "5.29.1"
-  - "5.29.1-thr"
-  - "5.29.1-thr-dbg"
-  - "5.29.1-thr-dbg-mb"
+  - "5.30"
+  - "5.30-thr"
+  - "5.30-thr-dbg"
+  - "5.30-thr-dbg-mb"
