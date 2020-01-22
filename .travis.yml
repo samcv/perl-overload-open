@@ -29,6 +29,8 @@ install:
 before_script:
   - coverage-setup
 script:
+  - perl Makefile.PL
+  - make
   - prove -b -l -j$(test-jobs) $(test-files)   # parallel testing
 after_success:
   - coverage-report
