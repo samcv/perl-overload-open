@@ -5,15 +5,12 @@ os:
   - linux
   - osx
 env:
-  - PVER=5.28
-  - PVER=5.4
-  - PVER=5.28 ARGS=--debug
-  - PVER=5.4 ARGS=--debug
+  - PVER=5.28.0 ARGS='-thread -Accflags="-fsanitize=address -g -O2" -Aldflags="-fsanitize=address -g -O2"'
 sudo: false
 before_install:
   - \curl -L https://install.perlbrew.pl | bash
   - source ~/perl5/perlbrew/etc/bashrc
-  - perlbrew install $PVER
+  - perlbrew install $ARGS $PVER
   - perlbrew switch $PVER
   - perl -V
 script:
