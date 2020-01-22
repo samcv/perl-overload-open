@@ -1,0 +1,7 @@
+language: "perl"
+os:
+  - linux
+  - osx
+perl:
+  - "5.10"
+  - "5.29"
