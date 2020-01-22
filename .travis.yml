@@ -5,7 +5,7 @@ os:
   - linux
   - osx
 env:
-  - ASAN_OPTIONS=halt_on_error=0 PVER=5.28.0 ARGS='--thread -Accflags=-fsanitize=address -Accflags=-g -Accflags=-O2 -Aldflags=-fsanitize=address -Aldflags=-g -Aldflags=-O2'
+  - ASAN_OPTIONS='halt_on_error=0:detect_leaks=0' PVER=5.28.0 ARGS='--thread -Accflags=-fsanitize=address -Accflags=-g -Accflags=-O2 -Aldflags=-fsanitize=address -Aldflags=-g -Aldflags=-O2'
     #- PVER=5.28.0 ARGS='--debug --thread -Accflags="-fsanitize=address -g -O2" -Aldflags="-fsanitize=address -g -O2"'
     #- PVER=5.28.0 ARGS='--thread -Accflags="-fsanitize=address -g -O2" -Aldflags="-fsanitize=address -g -O2"'
 sudo: false
