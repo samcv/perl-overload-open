@@ -153,9 +153,11 @@ _test_xs_function(...)
 void
 _install_open()
     CODE:
+        MUTEX_INIT(&OP_OPEN_replace_mutex);
         SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_open, OP_OPEN, Perl_pp_overload_open, OP_OPEN_replace_mutex);
 
 void
 _install_sysopen()
     CODE:
+        MUTEX_INIT(&OP_SYSOPEN_replace_mutex);
         SAVE_AND_REPLACE_PP_IF_UNSET(real_pp_sysopen, OP_SYSOPEN, Perl_pp_overload_sysopen, OP_SYSOPEN_replace_mutex);

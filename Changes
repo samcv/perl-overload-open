@@ -1,5 +1,8 @@
 Revision history for overload::open
 
+TBD
+    - Initialize the MUTEX's properly so threaded perl doesn't panic
+
 1.9.5 Jan 22, 2020
     - Have `make test` run verbose by default
 
