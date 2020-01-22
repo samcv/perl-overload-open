@@ -1,6 +1,6 @@
 Revision history for overload::open
 
-TBD
+1.9.6 Jan 23, 2020
     - Initialize the MUTEX's properly so threaded perl doesn't panic
 
 1.9.5 Jan 22, 2020

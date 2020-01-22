@@ -24,12 +24,12 @@ addons:
     - cpanminus
 
 before_install:
-  - "[ $TRAVIS_OS_NAME != windows ] && ( curl -L https://install.perlbrew.pl | bash )"
-  - "[ $TRAVIS_OS_NAME != windows ] && source ~/perl5/perlbrew/etc/bashrc"
-  - "[ $TRAVIS_OS_NAME != windows ] && ( sleep 10; tail -f $HOME/perl5/perlbrew/build.*.log ) &"
-  - "[ $TRAVIS_OS_NAME != windows ] && perlbrew install -j 4 --notest --noman $ARGS $PVER || cat $HOME/perl5/perlbrew/build.*.log"
-  - "[ $TRAVIS_OS_NAME != windows ] && perlbrew switch $PVER"
-  - "[ $TRAVIS_OS_NAME = windows ] && choco install strawberryperl"
+  - "[[ \"$TRAVIS_OS_NAME\" != windows ]] && ( curl -L https://install.perlbrew.pl | bash )"
+  - "[[ \"$TRAVIS_OS_NAME\" != windows ]] && source ~/perl5/perlbrew/etc/bashrc"
+  - "[[ \"$TRAVIS_OS_NAME\" != windows ]] && ( sleep 10; tail -f $HOME/perl5/perlbrew/build.*.log ) &"
+  - "[[ \"$TRAVIS_OS_NAME\" != windows ]] && perlbrew install -j 4 --notest --noman $ARGS $PVER || cat $HOME/perl5/perlbrew/build.*.log"
+  - "[[ \"$TRAVIS_OS_NAME\" != windows ]] && perlbrew switch $PVER"
+  - "[[ \"$TRAVIS_OS_NAME\" == windows ]] && choco install strawberryperl"
   - perl -V
   - cpan ExtUtils::MakeMaker
 script:
