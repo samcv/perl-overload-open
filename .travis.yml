@@ -1,7 +1,16 @@
-language: perl
+language: shell
 os:
   - linux
   - osx
+  - windows
+matrix:
+    exclude:
+    - os: windows
+      env: ASAN_OPTIONS='halt_on_error=0:detect_leaks=0' PVER=5.28.0 ARGS='--debug --thread -Accflags=-fsanitize=address -Accflags=-g -Accflags=-O2 -Aldflags=-fsanitize=address -Aldflags=-g -Aldflags=-O2'
+    - os: windows
+      env: ASAN_OPTIONS='halt_on_error=0:detect_leaks=0' PVER=5.28.0 ARGS='--debug -Accflags=-fsanitize=address -Accflags=-g -Accflags=-O2 -Aldflags=-fsanitize=address -Aldflags=-g -Aldflags=-O2'
+    - os: windows
+      env: PVER=5.28.0 ARGS='-Aldflags=-g -Aldflags=-O2'
 env:
   - ASAN_OPTIONS='halt_on_error=0:detect_leaks=0' PVER=5.28.0 ARGS='--debug --thread -Accflags=-fsanitize=address -Accflags=-g -Accflags=-O2 -Aldflags=-fsanitize=address -Aldflags=-g -Aldflags=-O2'
   - ASAN_OPTIONS='halt_on_error=0:detect_leaks=0' PVER=5.28.0 ARGS='--debug -Accflags=-fsanitize=address -Accflags=-g -Accflags=-O2 -Aldflags=-fsanitize=address -Aldflags=-g -Aldflags=-O2'
@@ -15,14 +24,17 @@ addons:
     - cpanminus
 
 before_install:
-  - \curl -L https://install.perlbrew.pl | bash
-  - source ~/perl5/perlbrew/etc/bashrc
-  - ( sleep 10; tail -f "$HOME"/perl5/perlbrew/build.*.log ) &
-  - perlbrew install -j 4 --notest --noman $ARGS $PVER || cat "$HOME"/perl5/perlbrew/build.*.log
-  - perlbrew switch $PVER
+  - [ "$TRAVIS_OS_NAME" != 'windows' ] && ( \curl -L https://install.perlbrew.pl | bash )
+  - [ "$TRAVIS_OS_NAME" != 'windows' ] && source ~/perl5/perlbrew/etc/bashrc
+  - [ "$TRAVIS_OS_NAME" != 'windows' ] && ( sleep 10; tail -f "$HOME"/perl5/perlbrew/build.*.log ) &
+   - [ "$TRAVIS_OS_NAME" != 'windows' ] && perlbrew install -j 4 --notest --noman $ARGS $PVER || cat "$HOME"/perl5/perlbrew/build.*.log
+  - [ "$TRAVIS_OS_NAME" != 'windows' ] && perlbrew switch $PVER
+  - [ "$TRAVIS_OS_NAME" = 'windows' ] && choco install strawberryperl
   - perl -V
+  - cpan ExtUtils::MakeMaker
 script:
   - perl Makefile.PL verbose
-  - make
+  - if [ "$TRAVIS_OS_NAME" != 'windows' ]; then make=make; else make=cmake
+  - $make
   - export ASAN_OPTIONS=detect_leaks=0
-  - make test TEST_VERBOSE=1
+  - $make test TEST_VERBOSE=1
