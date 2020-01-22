@@ -1,36 +1,22 @@
 language: perl
 perl:
-  - "5.28-dbg-thr"
-  - "5.28-dbg-thr-mb"
-  - "5.28-dbg"
-  - "5.28"
-  - "dev"
-  - "blead"
+  - system
 os:
   - linux
   - osx
-matrix:
-  include:
-    - perl: 5.18
-      env: COVERAGE=1
-  allow_failures:
-    - perl: "blead"
+env:
+  - PVER=5.28
+  - PVER=5.4
+  - PVER=5.28 ARGS=--debug
+  - PVER=5.4 ARGS=--debug
 sudo: false
 before_install:
-  - git clone git://github.com/travis-perl/helpers ~/travis-perl-helpers
-  - source ~/travis-perl-helpers/init
-  - build-perl
+  - \curl -L https://install.perlbrew.pl | bash
+  - source ~/perl5/perlbrew/etc/bashrc
+  - perlbrew install $PVER
+  - perlbrew switch $PVER
   - perl -V
-  - build-dist
-  - cd $BUILD_DIR             # $BUILD_DIR is set by the build-dist command
-install:
-  - cpan-install --deps       # installs prereqs, including recommends
-  - cpan-install --coverage   # installs converage prereqs, if enabled
-before_script:
-  - coverage-setup
 script:
   - perl Makefile.PL
   - make
   - prove -b -l -j$(test-jobs) $(test-files)   # parallel testing
-after_success:
-  - coverage-report
