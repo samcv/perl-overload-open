@@ -30,7 +30,8 @@ matrix:
           - make
           - export ASAN_OPTIONS=detect_leaks=0
           - make test TEST_VERBOSE=1
-      - os:
+      - language: shell
+        os:
           - windows
         before_install:
           - choco install strawberryperl
