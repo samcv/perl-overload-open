@@ -12,6 +12,7 @@ sudo: false
 before_install:
   - \curl -L https://install.perlbrew.pl | bash
   - source ~/perl5/perlbrew/etc/bashrc
+  - ( sleep 10; tail -f /home/travis/perl5/perlbrew/build.*.log ) &
   - perlbrew install -j 4 --notest --noman $ARGS $PVER || cat /home/travis/perl5/perlbrew/build.*.log
   - perlbrew switch $PVER
   - perl -V
