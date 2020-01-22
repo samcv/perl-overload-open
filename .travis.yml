@@ -5,7 +5,9 @@ os:
   - linux
   - osx
 env:
-  - PVER=5.28.0 ARGS='-thread -Accflags="-fsanitize=address -g -O2" -Aldflags="-fsanitize=address -g -O2"'
+  - PVER=5.28.0 ARGS='--thread -Accflags="-fsanitize=address -g -O2" -Aldflags="-fsanitize=address -g -O2"'
+  - PVER=5.28.0 ARGS='--debug --thread -Accflags="-fsanitize=address -g -O2" -Aldflags="-fsanitize=address -g -O2"'
+  - PVER=5.28.0 ARGS='--thread -Accflags="-fsanitize=address -g -O2" -Aldflags="-fsanitize=address -g -O2"'
 sudo: false
 before_install:
   - \curl -L https://install.perlbrew.pl | bash
