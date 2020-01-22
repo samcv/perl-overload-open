@@ -28,6 +28,7 @@ matrix:
           - windows
         before_install:
           - choco install strawberryperl
+          - cpan ExtUtils::MakeMaker
         script:
           - perl Makefile.PL verbose
           - cmake
