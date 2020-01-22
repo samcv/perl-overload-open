@@ -18,5 +18,5 @@ before_install:
 script:
   - perl Makefile.PL
   - make
-  - export ASAN_OPTIONS=
+  - export ASAN_OPTIONS=detect_leaks=0
   - prove -b -l -r t
