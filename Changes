@@ -1,5 +1,8 @@
 Revision history for overload::open
 
+1.9.5 Jan 22, 2020
+    - Have `make test` run verbose by default
+
 1.9.4 Jan 22, 2020
     - Use the markstack to find the number of items in the argument list
     - Remove POPMARK which made ASAN very sad
