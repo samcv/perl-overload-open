@@ -16,7 +16,7 @@ before_install:
   - perl -V
   - command -v homebrew && homebrew install cpanm
 script:
-  - perl Makefile.PL
+  - perl Makefile.PL verbose
   - make
   - export ASAN_OPTIONS=detect_leaks=0
-  - prove -b -l -r t
+  - make test TEST_VERBOSE=1
