@@ -19,4 +19,4 @@ script:
   - perl Makefile.PL
   - make
   - export ASAN_OPTIONS=
-  - prove -b -l -j$(test-jobs) $(test-files)   # parallel testing
+  - prove -b -l -r t
