@@ -1,6 +1,4 @@
 language: perl
-perl:
-  - system
 os:
   - linux
   - osx
@@ -16,6 +14,7 @@ before_install:
   - perlbrew install -j 4 --notest --noman $ARGS $PVER || cat /home/travis/perl5/perlbrew/build.*.log
   - perlbrew switch $PVER
   - perl -V
+  - command -v homebrew && homebrew install cpanm
 script:
   - perl Makefile.PL
   - make
