@@ -36,7 +36,7 @@ before_install:
   - perl -V
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then source .travis/RefreshEnv.sh; else true; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then refreshenv; else true; fi"
-  - echo yes | cpan ExtUtils::MakeMaker
+  - echo yes | perl -MCPAN -e 'CPAN::Shell->install("ExtUtils::MakeMaker")'
 script:
   - perl Makefile.PL verbose
   - if [ "$TRAVIS_OS_NAME" != 'windows' ]; then make=make; else make=cmake; fi
