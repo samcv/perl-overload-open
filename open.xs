@@ -94,6 +94,11 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
         return real_pp_func(aTHXR);
     }
     SV **sp = PL_stack_sp;
+    ssize_t myitems_before;
+    {
+        SV **mark = PL_stack_base + *PL_markstack_ptr;
+        myitems_before = sp - mark;
+    }
     ENTER;
         /* Save the temporaries stack */
         SAVETMPS;
@@ -129,6 +134,15 @@ OP * overload_allopen(char *opname, char *global, OP* (*real_pp_func)(pTHX)) {
         /* FREETMPS cleans up all stuff on the temporaries stack added since SAVETMPS was called */
         FREETMPS;
     LEAVE;
+    ssize_t myitems_after;
+    
+    {
+        SV **mark = PL_stack_base + *PL_markstack_ptr;
+        myitems_after = sp - mark;
+    }
+    if (myitems_before != myitems_after) {
+        DIE(aTHXR_ "panic: overload::open internal error. This should not happen.");
+    }
     return real_pp_func(aTHXR);
 }
 
