@@ -32,7 +32,7 @@ before_install:
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then perlbrew switch $PVER; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then choco install strawberryperl; fi"
   - perl -V
-  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then cpan=C:\\Strawberry\\cpan; else cpan=cpan; fi"
+  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then cpan=C:\\\\Strawberry\\\\cpan; else cpan=cpan; fi"
   - echo yes | $cpan ExtUtils::MakeMaker
 script:
   - perl Makefile.PL verbose
