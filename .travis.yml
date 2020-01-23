@@ -25,7 +25,6 @@ addons:
 
 before_install:
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( cd C:\\\\ ; for i in */**/*; do if [[ \"$i\" =~ 'Author.pm' ]]; then echo $i; fi; done; ) ; fi"
-  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then refreshenv; else true; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then curl -L https://install.perlbrew.pl | bash; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then source ~/perl5/perlbrew/etc/bashrc; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then ( TAIL_PID=$$; sleep 10; tail -f $HOME/perl5/perlbrew/build.*.log ) & else true; fi"
@@ -34,8 +33,6 @@ before_install:
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then perlbrew switch $PVER; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then choco install strawberryperl; fi"
   - perl -V
-  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then source .travis/RefreshEnv.sh; else true; fi"
-  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then refreshenv; else true; fi"
   - echo yes | perl -MCPAN -e 'CPAN::Shell->install("ExtUtils::MakeMaker")'
 script:
   - perl Makefile.PL verbose
