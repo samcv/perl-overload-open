@@ -26,8 +26,9 @@ addons:
 before_install:
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then curl -L https://install.perlbrew.pl | bash; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then source ~/perl5/perlbrew/etc/bashrc; fi"
-  - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then ( sleep 10; tail -f $HOME/perl5/perlbrew/build.*.log ) & else true; fi"
+  - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then ( TAIL_PID=$$; sleep 10; tail -f $HOME/perl5/perlbrew/build.*.log ) & else true; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then perlbrew install -j 4 --notest --noman $ARGS $PVER || cat $HOME/perl5/perlbrew/build.*.log; fi"
+  - if [[ "$TAIL_PID" ]]; then kill "$TAIL_PID"; fi
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then perlbrew switch $PVER; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then choco install strawberryperl; fi"
   - perl -V
