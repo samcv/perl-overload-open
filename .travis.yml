@@ -33,6 +33,7 @@ before_install:
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then choco install strawberryperl; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( cd C:\\\\ ; for i in */**/*; do if [[ \"$i\" =~ 'Author.pm' ]]; then echo $i; fi; done; ) ; fi"
   - perl -V
+  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( git clone https://github.com/Perl-Toolchain-Gang/ExtUtils-MakeMaker.git && cd ExtUtils-MakeMaker && perl -Ilib Makefile.PL && cmake install ); else true ; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( git clone https://github.com/andk/cpanpm.git && cd cpanpm && perl -Ilib Makefile.PL && cmake install ); else true ; fi"
   - echo yes | perl -MCPAN -e 'CPAN::Shell->install("ExtUtils::MakeMaker")'
 script:
