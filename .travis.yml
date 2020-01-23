@@ -31,7 +31,7 @@ before_install:
   - if [[ "$TAIL_PID" ]]; then kill "$TAIL_PID"; fi
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then perlbrew switch $PVER; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then choco install strawberryperl; fi"
-  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( cd C:\\\\Strawberry\\\\perl\\\\bin ; ls -lh; ./cpan ExtUtils::MakeMaker ); else true; fi"
+  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( cd C:\\\\Strawberry\\\\perl ; ls -lh; bin/perl -I lib -MCPAN -E 'CPAN->install(\"ExtUtils::MakeMaker\")' ) ; else true; fi"
   - perl -V
     #- "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( git clone https://github.com/Perl-Toolchain-Gang/ExtUtils-MakeMaker.git && cd ExtUtils-MakeMaker && perl -Ilib Makefile.PL && cmake install ); else true ; fi"
     #  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( git clone https://github.com/andk/cpanpm.git && cd cpanpm && perl -Ilib Makefile.PL && cmake install ); else true ; fi"
