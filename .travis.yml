@@ -37,7 +37,7 @@ before_install:
     #  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( git clone https://github.com/andk/cpanpm.git && cd cpanpm && perl -Ilib Makefile.PL && cmake install ); else true ; fi"
 script:
   - $perl Makefile.PL verbose
-  - if [ "$TRAVIS_OS_NAME" != 'windows' ]; then make=make; else make=cmake; fi
+  - if [ "$TRAVIS_OS_NAME" != 'windows' ]; then make=make; else make=gmake; fi
   - $make
   - export ASAN_OPTIONS=detect_leaks=0
   - $make test TEST_VERBOSE=1
