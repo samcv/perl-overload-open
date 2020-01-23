@@ -61,7 +61,7 @@ close $fh;
 die if ! -f $test_file;
 sysopen($sysopen_fh, $test_file, O_RDONLY);
 my $a;
-($a = <$sysopen_fh>) // warn $!;
+ok(defined ($a = <$sysopen_fh>), "result is defined");
 is $a, 'words', "file has correct content";
 close($sysopen_fh) or die $!;
 %opened_files = ();
