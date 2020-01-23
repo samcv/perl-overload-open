@@ -24,7 +24,7 @@ addons:
     - cpanminus
 
 before_install:
-  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then for i in /*/**/*; do true; if [[ \"$i\" =~ 'Author.pm' ]]; then echo $i; else true; fi"
+  - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then ( cd C:\\\\ ; for i in */**/*; do if [[ \"$i\" =~ 'Author.pm' ]]; then echo $i; fi; done; ) ; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" == windows ]]; then refreshenv; else true; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then curl -L https://install.perlbrew.pl | bash; fi"
   - "if [[ \"$TRAVIS_OS_NAME\" != windows ]]; then source ~/perl5/perlbrew/etc/bashrc; fi"
