@@ -34,7 +34,7 @@ before_install:
   - echo yes | cpan ExtUtils::MakeMaker
 script:
   - perl Makefile.PL verbose
-  - if [ "$TRAVIS_OS_NAME" != 'windows' ]; then make=make; else make=cmake
+  - if [ "$TRAVIS_OS_NAME" != 'windows' ]; then make=make; else make=cmake; fi
   - $make
   - export ASAN_OPTIONS=detect_leaks=0
   - $make test TEST_VERBOSE=1
